@@ -5,8 +5,8 @@
         <i class="el-icon-loading"></i>
       </template>
       <template v-else-if="loggedIn">
-        <span>You are logged in!</span>
-        <el-button type="info" plain size="mini" @click="logout">Logout</el-button>
+        <span class="user">User: {{user.displayName}}</span>
+        <el-button class="logout" push="right" type="info" plain size="mini" @click="logout">Logout</el-button>
       </template>
       <template v-else>
         <el-button type="primary" @click="login">Click here to login</el-button>
@@ -26,6 +26,7 @@ export default {
   computed: {
     ...mapGetters({
       loggedIn: 'auth/loggedIn',
+      user: 'auth/user',
       loading: 'auth/loading',
     }),
   },
@@ -39,22 +40,32 @@ export default {
 </script>
 
 <style lang="scss">
-* {
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+@import './styles/main.scss';
 
 #app {
   text-align: center;
   color: #2c3e50;
-  margin-top: 20px;
 
   .header {
-    margin-bottom: 20px;
-    > * {
-      vertical-align: middle;
+    padding: 8px;
+    border-bottom: 1px solid #ccc;
+    .user {
+      float: left;
+      line-height: 23px;
     }
+    .logout {
+      float: right;
+      position: relative;
+    }
+    &:after {
+      display: table;
+      content: ' ';
+      clear: both;
+    }
+  }
+
+  > *:not(.header) {
+    padding: 0 16px;
   }
 }
 
