@@ -1,6 +1,6 @@
 # contact-management
 
-> Contact managent page using Firebase
+> Contact management page using Firebase
 
 ## Build Setup
 
