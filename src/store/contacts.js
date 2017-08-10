@@ -7,6 +7,7 @@ export default {
     loading: false,
     error: false,
     permissionDenied: false,
+    ref: null,
   },
   getters: {
     contacts: state => state.contacts,
@@ -27,10 +28,14 @@ export default {
         state.permissionDenied = true;
       }
     },
+    setRef(state, ref) {
+      state.ref = ref;
+    },
   },
   actions: {
     setContactsRef: firebaseAction(({ bindFirebaseRef, commit }, ref) => {
       commit('setLoading', true);
+      commit('setRef', ref);
       bindFirebaseRef('contacts', ref, {
         readyCallback: () => {
           commit('setLoading', false);
@@ -40,5 +45,11 @@ export default {
         },
       });
     }),
+    addContact({ state }, contact) {
+      return state.ref.push(contact);
+    },
+    removeContact({ state }, key) {
+      return state.ref.child(key).remove();
+    },
   },
 };

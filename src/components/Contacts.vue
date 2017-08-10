@@ -13,7 +13,10 @@
       </template>
     </div>
     <div v-else>
-      <el-button type="primary" class="download-csv" @click="downloadCsv">Download CSV</el-button>
+      <div class="toolbox">
+        <el-button type="primary" class="download-csv" size="small" @click="downloadCsv">Download CSV</el-button>
+        <new-contact-dialog></new-contact-dialog>
+      </div>
       <el-table
         :data="pageItems"
         @filter-change="onFilterChange"
@@ -21,49 +24,72 @@
         border
         style="width: 100%">
         <el-table-column
-          prop="name"
+          prop="Name"
           label="Name"
           sortable="custom"
           min-width="300">
         </el-table-column>
         <el-table-column
-          prop="given_name"
+          prop="Given Name"
           label="Given Name"
           sortable="custom"
           min-width="180">
         </el-table-column>
         <el-table-column
-          prop="family_name"
+          prop="Family Name"
           label="Family Name"
           sortable="custom"
           min-width="180">
         </el-table-column>
         <el-table-column
-          prop="location"
+          prop="Location"
           label="Location"
-          column-key="location"
+          column-key="Location"
           :filters="locationsFilters"
           filter-placement="bottom-end"
           sortable="custom"
           min-width="150">
         </el-table-column>
         <el-table-column
-          prop="phone1"
+          prop="City"
+          label="City"
+          column-key="City"
+          :filters="citiesFilters"
+          filter-placement="bottom-end"
+          sortable="custom"
+          min-width="150">
+        </el-table-column>
+        <el-table-column
+          prop="Phone 1"
           label="Phone 1"
           min-width="120">
         </el-table-column>
         <el-table-column
-          prop="phone2"
+          prop="Phone 2"
           label="Phone 2"
           min-width="120">
         </el-table-column>
         <el-table-column
-          prop="gender"
-          column-key="gender"
+          prop="Gender"
           label="Gender"
-          width="100"
+          column-key="Gender"
           :filters="[{ text: 'Male', value: 'male' }, { text: 'Female', value: 'female' }]"
-          filter-placement="bottom-end">
+          filter-placement="bottom-end"
+          width="100">
+        </el-table-column>
+        <el-table-column
+          label="Operations"
+          class-name="operations"
+          header-align="center"
+          min-width="80">
+          <template scope="scope">
+            <view-contact-dialog :contact="scope.row"></view-contact-dialog>
+            <el-button
+              size="small"
+              type="danger"
+              icon="delete"
+              @click="handleDelete(scope.row)"></el-button>
+          </template>
         </el-table-column>
       </el-table>
       <el-pagination
@@ -79,8 +105,12 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex';
+import { mapActions, mapGetters } from 'vuex';
 import { saveAs } from 'file-saver';
+import NewContactDialog from './NewContactDialog';
+import { csvSeparator, contactsColumns } from '../config';
+import { getContactFilter } from '../utils';
+import ViewContactDialog from './ViewContactDialog';
 
 const orderFunctions = {
   ascending(a, b) {
@@ -92,6 +122,10 @@ const orderFunctions = {
 };
 
 export default {
+  components: {
+    ViewContactDialog,
+    NewContactDialog,
+  },
   name: 'contacts',
   data() {
     return {
@@ -138,18 +172,38 @@ export default {
       return this.sortedItems.slice(start, start + this.pagination.pageSize);
     },
     locationsFilters() {
-      const locations = new Set();
-      Object.values(this.contacts).forEach((contact) => {
-        locations.add(contact.location);
-      });
-      return Array.from(locations)
-        .map(location => ({
-          text: location,
-          value: location,
-        }));
+      return getContactFilter(this.contacts, 'Location');
+    },
+    citiesFilters() {
+      return getContactFilter(this.contacts, 'City');
     },
   },
   methods: {
+    ...mapActions({
+      removeContact: 'contacts/removeContact',
+    }),
+    handleDelete(row) {
+      this.$confirm('Are you sure you want to delete this contact?', 'Delete Contact', {
+        confirmButtonText: 'Delete',
+        confirmButtonClass: 'el-button--danger',
+        cancelButtonText: 'Cancel',
+        type: 'warning',
+      }).then(() => {
+        this.removeContact(row['.key']).then(() => {
+          this.$notify.success({
+            title: 'Success',
+            message: 'Contact deleted successfully.',
+          });
+          this.dialogVisible = false;
+        })
+        .catch(() => {
+          this.$notify.error({
+            title: 'Error',
+            message: 'Contact deletion failed.',
+          });
+        });
+      });
+    },
     onFilterChange(filters) {
       this.pagination.page = 1;
       Object.entries(filters)
@@ -161,30 +215,19 @@ export default {
       this.sort = { prop, order };
     },
     downloadCsv() {
-      const separator = ';';
-      const columns = {
-        Name: 'name',
-        'Given Name': 'given_name',
-        'Additional Name': 'additional_name',
-        'Family Name': 'family_name',
-        Location: 'location',
-        'Phone 1 - Type': () => 'Mobile',
-        'Phone 1 - Value': 'phone1',
-        'Phone 2 - Type': () => 'Mobile',
-        'Phone 2 - Value': 'phone2',
-        Gender: 'gender',
-      };
-
-      const headerText = `${Object.keys(columns).join(separator)}\n`;
+      const headerText = `${contactsColumns
+        .filter(value => value.csv)
+        .map(value => value.csv)
+        .join(csvSeparator)}\n`;
 
       const data = [headerText,
         ...this.sortedItems
           .map(contact => `${
-            Object.values(columns).map((value) => {
-              if (typeof value === 'function') {
-                return value(contact);
+            contactsColumns.map((col) => {
+              if (col.constant !== undefined) {
+                return col.constant;
               }
-              return contact[value];
+              return contact[col.name];
             }).join(';')
             }\n`),
       ];
@@ -212,11 +255,22 @@ export default {
       padding: 1px 5px;
     }
   }
+
+  /deep/ th.is-leaf .cell {
+    padding-right: 0;
+  }
+
+  /deep/ .operations .cell {
+    padding: 0;
+  }
 }
+
 .el-pagination {
   margin: 16px 0;
 }
-.download-csv {
+
+.toolbox {
   margin-bottom: 16px;
+  text-align: right;
 }
 </style>

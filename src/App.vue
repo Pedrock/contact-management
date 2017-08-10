@@ -68,10 +68,4 @@ export default {
     padding: 0 16px;
   }
 }
-
-.el-table__body-wrapper > table {
-  width: 100% !important;
-  min-width: 500px !important;
-  padding-top: 1px;
-}
 </style>

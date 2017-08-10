@@ -6,6 +6,12 @@ html, body {
 
 * {
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
+  -webkit-font-smoothing: subpixel-antialiased !important;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.el-table__body-wrapper > table {
+  width: 100% !important;
+  min-width: 500px !important;
+  padding-top: 1px;
 }
