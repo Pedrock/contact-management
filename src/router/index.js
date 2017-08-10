@@ -1,6 +1,6 @@
 import Vue from 'vue';
 import Router from 'vue-router';
-import Contacts from '@/components/Contacts';
+import Contacts from '../pages/ContactsPage';
 
 Vue.use(Router);
 

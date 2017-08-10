@@ -1,5 +1,4 @@
-// eslint-disable-next-line import/prefer-default-export
-export function getContactFilter(contacts, fieldName) {
+export default function getContactFilter(contacts, fieldName) {
   const values = new Set();
   Object.values(contacts).forEach((object) => {
     values.add(object[fieldName]);

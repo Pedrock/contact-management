@@ -4,6 +4,10 @@ export const csvSeparator = ';';
 
 export const contactsColumns = [
   {
+    name: 'ID',
+    required: true,
+  },
+  {
     name: 'Name',
     csv: 'Name',
     hidden: true,
@@ -38,17 +42,27 @@ export const contactsColumns = [
     required: true,
   },
   {
-    name: 'Phone 1',
+    name: 'Mobile',
     csv: 'Phone 1 - Value',
     required: true,
   },
   {
-    csv: 'Phone 2 - Type',
+    csv: 'Phone 1 - Type',
     constant: 'Mobile',
+    required: true,
   },
   {
-    name: 'Phone 2',
+    name: 'Mobile 2',
     csv: 'Phone 2 - Value',
+    required: true,
+  },
+  {
+    csv: 'Phone 3 - Type',
+    constant: 'Home',
+  },
+  {
+    name: 'Phone',
+    csv: 'Phone 3 - Value',
   },
   {
     name: 'Gender',

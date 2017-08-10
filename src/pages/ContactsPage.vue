@@ -15,6 +15,7 @@
     <div v-else>
       <div class="toolbox">
         <el-button type="primary" class="download-csv" size="small" @click="downloadCsv">Download CSV</el-button>
+        <import-csv-dialog></import-csv-dialog>
         <new-contact-dialog></new-contact-dialog>
       </div>
       <el-table
@@ -24,22 +25,16 @@
         border
         style="width: 100%">
         <el-table-column
+          prop="ID"
+          label="ID"
+          sortable="custom"
+          min-width="50">
+        </el-table-column>
+        <el-table-column
           prop="Name"
           label="Name"
           sortable="custom"
           min-width="300">
-        </el-table-column>
-        <el-table-column
-          prop="Given Name"
-          label="Given Name"
-          sortable="custom"
-          min-width="180">
-        </el-table-column>
-        <el-table-column
-          prop="Family Name"
-          label="Family Name"
-          sortable="custom"
-          min-width="180">
         </el-table-column>
         <el-table-column
           prop="Location"
@@ -60,13 +55,18 @@
           min-width="150">
         </el-table-column>
         <el-table-column
-          prop="Phone 1"
-          label="Phone 1"
+          prop="Mobile"
+          label="Mobile"
           min-width="120">
         </el-table-column>
         <el-table-column
-          prop="Phone 2"
-          label="Phone 2"
+          prop="Mobile 2"
+          label="Mobile 2"
+          min-width="120">
+        </el-table-column>
+        <el-table-column
+          prop="Phone"
+          label="Phone"
           min-width="120">
         </el-table-column>
         <el-table-column
@@ -107,10 +107,11 @@
 <script>
 import { mapActions, mapGetters } from 'vuex';
 import { saveAs } from 'file-saver';
-import NewContactDialog from './NewContactDialog';
+import NewContactDialog from '../components/NewContactDialog';
+import ViewContactDialog from '../components/ViewContactDialog';
 import { csvSeparator, contactsColumns } from '../config';
-import { getContactFilter } from '../utils';
-import ViewContactDialog from './ViewContactDialog';
+import getContactFilter from '../utils/getContactFilter';
+import ImportCsvDialog from '../components/ImportCsvDialog';
 
 const orderFunctions = {
   ascending(a, b) {
@@ -121,8 +122,18 @@ const orderFunctions = {
   },
 };
 
+const numberOrderFunctions = {
+  ascending(a, b) {
+    return Number(a[this.sort.prop]) < Number(b[this.sort.prop]) ? -1 : 1;
+  },
+  descending(b, a) {
+    return Number(a[this.sort.prop]) > Number(b[this.sort.prop]) ? 1 : -1;
+  },
+};
+
 export default {
   components: {
+    ImportCsvDialog,
     ViewContactDialog,
     NewContactDialog,
   },
@@ -164,6 +175,8 @@ export default {
     sortedItems() {
       if (this.sort.prop === null) {
         return this.filteredItems;
+      } else if (this.sort.prop === 'ID') {
+        return this.filteredItems.slice().sort(numberOrderFunctions[this.sort.order].bind(this));
       }
       return this.filteredItems.slice().sort(orderFunctions[this.sort.order].bind(this));
     },
@@ -260,7 +273,7 @@ export default {
     padding-right: 0;
   }
 
-  /deep/ .operations .cell {
+  /deep/ .operations > .cell {
     padding: 0;
   }
 }

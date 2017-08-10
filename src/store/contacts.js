@@ -48,6 +48,16 @@ export default {
     addContact({ state }, contact) {
       return state.ref.push(contact);
     },
+    addMultipleContacts({ state }, contacts) {
+      const updates = contacts.reduce((obj, contact) =>
+        ({ ...obj, [state.ref.push().key]: contact }), {});
+      return state.ref.update(updates);
+    },
+    replaceContacts({ state }, contacts) {
+      const updates = contacts.reduce((obj, contact) =>
+        ({ ...obj, [state.ref.push().key]: contact }), {});
+      return state.ref.set(updates);
+    },
     removeContact({ state }, key) {
       return state.ref.child(key).remove();
     },

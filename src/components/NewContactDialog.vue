@@ -8,7 +8,7 @@
           </el-form-item>
           <el-form-item v-for="field in fields" :key="field.key" :prop="field.key" :label="field.label" label-width="120px" :rules="field.rules">
             <template v-if="field.choices">
-              <el-select v-model="form[field.key]" :label="field.label" :disabled="field.disabled">
+              <el-select v-model.trim="form[field.key]" :label="field.label" :disabled="field.disabled">
                 <el-option v-for="choice in field.choices" :key="choice.value" :label="choice.label" :value="choice.value"></el-option>
               </el-select>
             </template>
@@ -115,9 +115,6 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.el-dialog__wrapper {
-  text-align: initial;
-}
 .el-input.is-disabled /deep/ .el-input__inner {
   cursor: text !important;
   background-color: #f2f5f6;

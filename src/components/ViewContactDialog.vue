@@ -11,8 +11,8 @@
       :visible.sync="dialogVisible"
       size="small">
         <el-table :data="info" :showHeader="false">
-          <el-table-column prop="key" width="165" class-name="table-left-header" :show-overflow-tooltip="true"></el-table-column>
-          <el-table-column prop="value" :show-overflow-tooltip="true"></el-table-column>
+          <el-table-column class-name="right-header" prop="key" min-width="140"></el-table-column>
+          <el-table-column prop="value" min-width="350"></el-table-column>
         </el-table>
     </el-dialog>
   </span>
@@ -49,3 +49,9 @@ export default {
   },
 };
 </script>
+
+<style lang="scss" scoped>
+.el-table /deep/ .right-header {
+  background-color: #f5f5f5;
+}
+</style>
