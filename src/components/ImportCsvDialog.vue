@@ -39,6 +39,7 @@
 import _ from 'lodash';
 import { mapActions } from 'vuex';
 import csvToJson from '../utils/csvToJson';
+import getGender from '../utils/getGender';
 
 /* eslint-disable no-param-reassign */
 function fixNames(contacts) {
@@ -54,6 +55,9 @@ function fixNames(contacts) {
     }
     if (!contact['Additional Name']) {
       contact['Additional Name'] = nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : '';
+    }
+    if (!contact.Gender) {
+      contact.Gender = getGender(contact['Given Name']);
     }
     delete contact[''];
   });
@@ -95,20 +99,27 @@ export default {
         return;
       }
       fixNames(contacts);
-      (this.deleteAll ? this.replaceContacts : this.addMultipleContacts)(contacts)
-        .then(() => {
-          this.$notify.success({
-            title: 'Success',
-            message: 'Contacts imported successfully.',
+      console.log(_.uniq(contacts.filter(c => !c.Gender).map(c => c['Given Name'])));
+      this.loading = true;
+      setTimeout(() => {
+        (this.deleteAll ? this.replaceContacts : this.addMultipleContacts)(contacts)
+          .then(() => {
+            this.$notify.success({
+              title: 'Success',
+              message: 'Contacts imported successfully.',
+            });
+            this.dialogVisible = false;
+          })
+          .catch(() => {
+            this.$notify.error({
+              title: 'Error',
+              message: 'Contact import failed.',
+            });
+          })
+          .then(() => {
+            this.loading = false;
           });
-          this.dialogVisible = false;
-        })
-        .catch(() => {
-          this.$notify.error({
-            title: 'Error',
-            message: 'Contact import failed.',
-          });
-        });
+      });
     },
     changeVisibility(visibility) {
       if (visibility) {

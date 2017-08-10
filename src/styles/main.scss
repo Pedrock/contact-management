@@ -29,6 +29,6 @@ html, body {
 }
 
 .el-table-filter {
-  max-height: 100vh;
+  max-height: calc(100vh - 15px);
   overflow: auto;
 }
