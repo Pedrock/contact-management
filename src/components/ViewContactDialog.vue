@@ -12,7 +12,14 @@
       size="small">
         <el-table :data="info" :showHeader="false">
           <el-table-column class-name="right-header" prop="key" min-width="140"></el-table-column>
-          <el-table-column prop="value" min-width="350"></el-table-column>
+          <el-table-column prop="value" min-width="350">
+            <template scope="scope">
+              <template v-if="scope.row.key === 'Blacklisted'">
+                <el-tag v-if="scope.row.value" type="danger">Blacklisted</el-tag>
+                <span v-else>No</span>
+              </template>
+              <template v-else>{{ scope.row.value }}</template>
+          </template></el-table-column>
         </el-table>
     </el-dialog>
   </span>

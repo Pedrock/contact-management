@@ -12,6 +12,9 @@
                 <el-option v-for="choice in field.choices" :key="choice.value" :label="choice.label" :value="choice.value"></el-option>
               </el-select>
             </template>
+            <template v-else-if="field.type === 'boolean'">
+              <el-checkbox v-model="form[field.key]" :disabled="field.disabled"></el-checkbox>
+            </template>
             <template v-else>
               <el-input v-model="form[field.key]" :disabled="field.disabled" auto-complete="off"></el-input>
             </template>
@@ -50,12 +53,10 @@ export default {
       return contactsColumns
         .filter(col => !col.constant && !col.hidden)
         .map(col => ({
+          ...col,
           key: col.name,
           label: col.name,
-          required: !!col.required,
-          choices: col.choices,
-          disabled: !!col.disabled,
-          rules: [
+          rules: col.type === 'boolean' ? [] : [
             { required: !!col.required, trigger: 'blur,change', message: `${col.name} is required` },
           ],
         }));

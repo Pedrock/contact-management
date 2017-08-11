@@ -28,7 +28,7 @@
           prop="ID"
           label="ID"
           sortable="custom"
-          min-width="50">
+          min-width="60">
         </el-table-column>
         <el-table-column
           prop="Name"
@@ -76,6 +76,20 @@
           :filters="[{ text: 'Male', value: 'male' }, { text: 'Female', value: 'female' }]"
           filter-placement="bottom-end"
           width="100">
+        </el-table-column>
+        <el-table-column
+          prop="Blacklisted"
+          label="BL"
+          column-key="Blacklisted"
+          class-name="blacklisted"
+          header-align="center"
+          :filters="[{ text: 'Yes', value: true }, { text: 'No', value: false }]"
+          filter-placement="bottom-end"
+          width="60">
+          <template scope="scope">
+            <el-tag v-if="scope.row.Blacklisted"
+                    type="danger">BL</el-tag>
+          </template>
         </el-table-column>
         <el-table-column
           label="Operations"
@@ -228,13 +242,24 @@ export default {
       this.sort = { prop, order };
     },
     downloadCsv() {
-      const headerText = `${contactsColumns
+      let promise = Promise.resolve();
+      if (!this.filters.Blacklisted
+        || Object.keys(this.filters.Blacklisted).length !== 1
+        || this.filters.Blacklisted[0] !== false) {
+        promise = this.$confirm('You are not filtering out the blacklisted contacts. Continue?', 'Warning', {
+          confirmButtonText: 'Yes',
+          cancelButtonText: 'No',
+          type: 'warning',
+        });
+      }
+      promise.then(() => {
+        const headerText = `${contactsColumns
         .filter(value => value.csv)
         .map(value => value.csv)
         .join(csvSeparator)}\n`;
 
-      const data = [headerText,
-        ...this.sortedItems
+        const data = [headerText,
+          ...this.sortedItems
           .map(contact => `${
             contactsColumns.map((col) => {
               if (col.constant !== undefined) {
@@ -243,10 +268,11 @@ export default {
               return contact[col.name];
             }).join(';')
             }\n`),
-      ];
+        ];
 
-      const blob = new Blob(data, { type: 'text/plain' });
-      saveAs(blob, 'contacts_test.csv');
+        const blob = new Blob(data, { type: 'text/plain' });
+        saveAs(blob, 'contacts_test.csv');
+      });
     },
   },
 };
@@ -273,8 +299,14 @@ export default {
     padding-right: 0;
   }
 
-  /deep/ .operations > .cell {
-    padding: 0;
+  /deep/ .operations, /deep/ .blacklisted {
+    > .cell {
+      padding: 0;
+    }
+  }
+
+  /deep/ .blacklisted.is-leaf > .cell {
+    padding-right: 10px;
   }
 }
 

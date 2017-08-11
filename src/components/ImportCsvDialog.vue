@@ -59,6 +59,7 @@ function fixNames(contacts) {
     if (!contact.Gender) {
       contact.Gender = getGender(contact['Given Name']);
     }
+    contact.Blacklisted = contact.Blacklisted !== '' && contact.Blacklisted.toLowerCase() !== 'no';
     delete contact[''];
   });
 }

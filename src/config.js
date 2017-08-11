@@ -73,6 +73,10 @@ export const contactsColumns = [
     { label: 'female', value: 'female' },
     ],
   },
+  {
+    name: 'Blacklisted',
+    type: 'boolean',
+  },
 ];
 
 export const order = _.map(contactsColumns, col => col.name);
