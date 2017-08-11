@@ -47,7 +47,7 @@ export const contactsColumns = [
     required: true,
   },
   {
-    csv: 'Phone 1 - Type',
+    csv: 'Phone 2 - Type',
     constant: 'Mobile',
     required: true,
   },

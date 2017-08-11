@@ -261,7 +261,9 @@ export default {
         const data = [headerText,
           ...this.sortedItems
           .map(contact => `${
-            contactsColumns.map((col) => {
+            contactsColumns
+            .filter(col => col.csv)
+            .map((col) => {
               if (col.constant !== undefined) {
                 return col.constant;
               }
