@@ -14,6 +14,12 @@
     </div>
     <div v-else>
       <div class="toolbox">
+        <el-input
+          placeholder="Search"
+          class="search"
+          icon="search"
+          @input="onSearchInput">
+        </el-input>
         <el-button type="primary" class="download-csv" size="small" @click="downloadCsv">Download CSV</el-button>
         <import-csv-dialog></import-csv-dialog>
         <new-contact-dialog></new-contact-dialog>
@@ -28,7 +34,7 @@
           prop="ID"
           label="ID"
           sortable="custom"
-          min-width="60">
+          min-width="70">
         </el-table-column>
         <el-table-column
           prop="Name"
@@ -112,13 +118,14 @@
         :page-sizes="[10, 25, 100]"
         :page-size="pagination.pageSize"
         layout="total, sizes, prev, pager, next, jumper"
-        :total="filteredItems.length">
+        :total="searchFilteredItems.length">
       </el-pagination>
     </div>
   </div>
 </template>
 
 <script>
+import _ from 'lodash';
 import { mapActions, mapGetters } from 'vuex';
 import { saveAs } from 'file-saver';
 import NewContactDialog from '../components/NewContactDialog';
@@ -145,6 +152,10 @@ const numberOrderFunctions = {
   },
 };
 
+function clean(value) {
+  return _.deburr(String(value).trim().toLowerCase());
+}
+
 export default {
   components: {
     ImportCsvDialog,
@@ -154,6 +165,7 @@ export default {
   name: 'contacts',
   data() {
     return {
+      search: '',
       pagination: {
         pageSize: 10,
         page: 1,
@@ -172,6 +184,13 @@ export default {
       error: 'contacts/error',
       permissionDenied: 'contacts/permissionDenied',
     }),
+    searchFilteredItems() {
+      const cleanSearch = clean(this.search);
+      return this.filteredItems
+        .filter(item => Object.values(item)
+          .some(val =>
+          clean(val).includes(cleanSearch)));
+    },
     filteredItems() {
       const activeFilters = Object.entries(this.filters)
         .filter(entry => Object.values(entry[1]).length);
@@ -188,11 +207,13 @@ export default {
     },
     sortedItems() {
       if (this.sort.prop === null) {
-        return this.filteredItems;
+        return this.searchFilteredItems;
       } else if (this.sort.prop === 'ID') {
-        return this.filteredItems.slice().sort(numberOrderFunctions[this.sort.order].bind(this));
+        return this.searchFilteredItems.slice()
+          .sort(numberOrderFunctions[this.sort.order].bind(this));
       }
-      return this.filteredItems.slice().sort(orderFunctions[this.sort.order].bind(this));
+      return this.searchFilteredItems.slice()
+        .sort(orderFunctions[this.sort.order].bind(this));
     },
     pageItems() {
       const start = (this.pagination.page - 1) * this.pagination.pageSize;
@@ -209,6 +230,9 @@ export default {
     ...mapActions({
       removeContact: 'contacts/removeContact',
     }),
+    onSearchInput: _.debounce(function onSearchInput(value) {
+      this.search = value;
+    }, 500),
     handleDelete(row) {
       this.$confirm('Are you sure you want to delete this contact?', 'Delete Contact', {
         confirmButtonText: 'Delete',
@@ -319,5 +343,14 @@ export default {
 .toolbox {
   margin-bottom: 16px;
   text-align: right;
+  > .search {
+    max-width: 300px;
+    float: left;
+  }
+  &:after {
+    content: ' ';
+    display: table;
+    clear: both;
+  }
 }
 </style>
