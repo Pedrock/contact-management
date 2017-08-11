@@ -39,30 +39,29 @@ export const contactsColumns = [
   {
     csv: 'Phone 1 - Type',
     constant: 'Mobile',
-    required: true,
   },
   {
     name: 'Mobile',
     csv: 'Phone 1 - Value',
-    required: true,
+    type: 'phone',
   },
   {
     csv: 'Phone 2 - Type',
     constant: 'Mobile',
-    required: true,
   },
   {
     name: 'Mobile 2',
     csv: 'Phone 2 - Value',
-    required: true,
+    type: 'phone',
   },
   {
     csv: 'Phone 3 - Type',
     constant: 'Home',
   },
   {
-    name: 'Phone',
+    name: 'Home Phone',
     csv: 'Phone 3 - Value',
+    type: 'phone',
   },
   {
     name: 'Gender',
@@ -79,8 +78,16 @@ export const contactsColumns = [
   },
 ];
 
+export const phoneNumberFields = contactsColumns.filter(f => f.type === 'phone').map(f => f.name);
+
 export const order = _.map(contactsColumns, col => col.name);
 
 export const baseContact = contactsColumns
   .filter(col => col.name)
   .reduce((obj, col) => ({ ...obj, [col.name]: col.constant || '' }), {});
+
+const phoneRegex = new RegExp('^((00|\\+)351)?[0-9]{9}$');
+
+export function validatePhoneNumber(number) {
+  return phoneRegex.test(String(number).replace(/ /g, ''));
+}

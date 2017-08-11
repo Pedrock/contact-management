@@ -6,6 +6,7 @@
       icon="view"
       @click="dialogVisible = true"></el-button>
     <el-dialog
+      top="5%"
       :key="contact['.key']"
       title="View Contact"
       :visible.sync="dialogVisible"

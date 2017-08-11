@@ -1,2 +1,4 @@
 build/*.js
 config/*.js
+src/components/table/**/*.js
+src/components/table/**/*.vue

@@ -36,3 +36,12 @@ html, body {
 .cell .caret-wrapper {
   position: absolute;
 }
+
+.el-message-box {
+  max-width: 100vw;
+}
+
+.el-message-box-multiline {
+  white-space: pre-wrap;
+  width: 700px;
+}

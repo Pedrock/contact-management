@@ -71,15 +71,10 @@
           min-width="120">
         </el-table-column>
         <el-table-column
-          prop="Phone"
-          label="Phone"
-          min-width="120">
-        </el-table-column>
-        <el-table-column
           prop="Gender"
           label="Gender"
           column-key="Gender"
-          :filters="[{ text: 'Male', value: 'male' }, { text: 'Female', value: 'female' }]"
+          :filters="[{ text: 'Male', value: 'male' }, { text: 'Female', value: 'female' }, { text: '(empty)', value: null }]"
           filter-placement="bottom-end"
           width="100">
         </el-table-column>
@@ -341,12 +336,18 @@ export default {
 }
 
 .toolbox {
-  margin-bottom: 16px;
+  margin-bottom: 8px;
   text-align: right;
   > .search {
     max-width: 300px;
+    margin-bottom: 4px;
+    margin-right: 4px;
     float: left;
   }
+  /deep/ > span > .el-button, .el-button {
+    margin-bottom: 4px;
+  }
+
   &:after {
     content: ' ';
     display: table;

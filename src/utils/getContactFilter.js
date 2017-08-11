@@ -4,5 +4,5 @@ export default function getContactFilter(contacts, fieldName) {
     values.add(object[fieldName]);
   });
   return Array.from(values)
-  .map(value => ({ value, text: value }));
+  .map(value => ({ value, text: value === '' ? '(empty)' : value }));
 }

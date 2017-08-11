@@ -1,11 +1,12 @@
 <template>
-  <span>
+  <span class="import-csv-dialog">
     <el-button
       size="small"
       type="primary"
       icon="upload2"
       @click="dialogVisible = true">Import CSV</el-button>
     <el-dialog
+      top="5%"
       title="Import Contacts CSV"
       :visible.sync="dialogVisible"
       size="small">
@@ -40,9 +41,10 @@ import _ from 'lodash';
 import { mapActions } from 'vuex';
 import csvToJson from '../utils/csvToJson';
 import getGender from '../utils/getGender';
+import { phoneNumberFields, validatePhoneNumber } from '../config';
 
 /* eslint-disable no-param-reassign */
-function fixNames(contacts) {
+function fixNames(contacts, invalidPhoneNumbers) {
   contacts.forEach((contact) => {
     contact.Name = _.startCase(_.toLower(contact.Name || ''));
     contact.Location = _.startCase(_.toLower(contact.Location || ''));
@@ -59,6 +61,14 @@ function fixNames(contacts) {
     if (!contact.Gender) {
       contact.Gender = getGender(contact['Given Name']);
     }
+    phoneNumberFields.forEach((field) => {
+      if (contact[field] && !validatePhoneNumber(contact[field])) {
+        if (!invalidPhoneNumbers.includes(contact[field])) {
+          invalidPhoneNumbers.push(contact[field]);
+        }
+        contact[field] = '';
+      }
+    });
     contact.Blacklisted = contact.Blacklisted !== '' && contact.Blacklisted.toLowerCase() !== 'no';
     delete contact[''];
   });
@@ -74,6 +84,7 @@ export default {
       separator: null,
       deleteAll: false,
       loading: false,
+      invalidPhoneNumbers: [],
     };
   },
   methods: {
@@ -99,8 +110,17 @@ export default {
         });
         return;
       }
-      fixNames(contacts);
-      console.log(_.uniq(contacts.filter(c => !c.Gender).map(c => c['Given Name'])));
+      const invalidPhoneNumbers = [];
+      fixNames(contacts, invalidPhoneNumbers);
+      const noGenderNames = _.uniq(contacts.filter(c => !c.Gender).map(c => c['Given Name']));
+
+      const errorLog = [];
+      if (invalidPhoneNumbers.length) {
+        errorLog.push(`The following phone numbers where ignored: ${invalidPhoneNumbers.join(', ')}.`);
+      }
+      if (noGenderNames.length) {
+        errorLog.push(`The gender of the following names could not be automatically detected: ${noGenderNames.join(', ')}.`);
+      }
       this.loading = true;
       setTimeout(() => {
         (this.deleteAll ? this.replaceContacts : this.addMultipleContacts)(contacts)
@@ -110,6 +130,13 @@ export default {
               message: 'Contacts imported successfully.',
             });
             this.dialogVisible = false;
+            if (errorLog.length) {
+              this.$alert(errorLog.join('\n\n'), 'Error log', {
+                type: 'warning',
+                confirmButtonText: 'OK',
+                customClass: 'el-message-box-multiline',
+              });
+            }
           })
           .catch(() => {
             this.$notify.error({
@@ -133,6 +160,6 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 
 </style>
