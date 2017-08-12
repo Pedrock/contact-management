@@ -5,26 +5,31 @@ export const csvSeparator = ';';
 export const contactsColumns = [
   {
     name: 'ID',
+    csv: 'ID',
     required: true,
   },
   {
     name: 'Name',
     csv: 'Name',
     hidden: true,
+    exportTarget: true,
   },
   {
     name: 'Given Name',
     csv: 'Given Name',
     required: true,
+    exportTarget: true,
   },
   {
     name: 'Additional Name',
     csv: 'Additional Name',
+    exportTarget: true,
   },
   {
     name: 'Family Name',
     csv: 'Family Name',
     required: true,
+    exportTarget: true,
   },
   {
     name: 'Location',
@@ -39,29 +44,35 @@ export const contactsColumns = [
   {
     csv: 'Phone 1 - Type',
     constant: 'Mobile',
+    exportTarget: true,
   },
   {
     name: 'Mobile',
     csv: 'Phone 1 - Value',
     type: 'phone',
+    exportTarget: true,
   },
   {
     csv: 'Phone 2 - Type',
     constant: 'Mobile',
+    exportTarget: true,
   },
   {
     name: 'Mobile 2',
     csv: 'Phone 2 - Value',
     type: 'phone',
+    exportTarget: true,
   },
   {
     csv: 'Phone 3 - Type',
     constant: 'Home',
+    exportTarget: true,
   },
   {
     name: 'Home Phone',
     csv: 'Phone 3 - Value',
     type: 'phone',
+    exportTarget: true,
   },
   {
     name: 'Gender',

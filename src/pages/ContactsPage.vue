@@ -20,7 +20,7 @@
           icon="search"
           @input="onSearchInput">
         </el-input>
-        <el-button type="primary" class="download-csv" size="small" @click="downloadCsv">Download CSV</el-button>
+        <export-contacts-dialog :items="sortedItems" :filters="filters"></export-contacts-dialog>
         <import-csv-dialog></import-csv-dialog>
         <new-contact-dialog></new-contact-dialog>
       </div>
@@ -33,12 +33,16 @@
         <el-table-column
           prop="ID"
           label="ID"
+          column-key="ID"
+          :filters="[{ text: 'Not Empty', value: notEmpty, key: '_notEmpty_' }, { text: 'Empty', value: empty, key: '_empty_' }]"
           sortable="custom"
-          min-width="70">
+          min-width="80">
         </el-table-column>
         <el-table-column
           prop="Name"
           label="Name"
+          column-key="Name"
+          :filters="[{ text: 'Not Empty', value: notEmpty, key: '_notEmpty_' }, { text: 'Empty', value: empty, key: '_empty_' }]"
           sortable="custom"
           min-width="300">
         </el-table-column>
@@ -47,7 +51,6 @@
           label="Location"
           column-key="Location"
           :filters="locationsFilters"
-          filter-placement="bottom-end"
           sortable="custom"
           min-width="150">
         </el-table-column>
@@ -56,26 +59,28 @@
           label="City"
           column-key="City"
           :filters="citiesFilters"
-          filter-placement="bottom-end"
           sortable="custom"
           min-width="150">
         </el-table-column>
         <el-table-column
           prop="Mobile"
           label="Mobile"
+          column-key="Mobile"
+          :filters="[{ text: 'Not Empty', value: notEmpty, key: '_notEmpty_' }, { text: 'Empty', value: empty, key: '_empty_' }]"
           min-width="120">
         </el-table-column>
         <el-table-column
           prop="Mobile 2"
           label="Mobile 2"
+          column-key="Mobile 2"
+          :filters="[{ text: 'Not Empty', value: notEmpty, key: '_notEmpty_' }, { text: 'Empty', value: empty, key: '_empty_' }]"
           min-width="120">
         </el-table-column>
         <el-table-column
           prop="Gender"
           label="Gender"
           column-key="Gender"
-          :filters="[{ text: 'Male', value: 'male' }, { text: 'Female', value: 'female' }, { text: '(empty)', value: null }]"
-          filter-placement="bottom-end"
+          :filters="[{ text: 'Male', value: 'male' }, { text: 'Female', value: 'female' }, { text: '(empty)', value: empty, key: '_empty_' }]"
           width="100">
         </el-table-column>
         <el-table-column
@@ -85,7 +90,6 @@
           class-name="blacklisted"
           header-align="center"
           :filters="[{ text: 'Yes', value: true }, { text: 'No', value: false }]"
-          filter-placement="bottom-end"
           width="60">
           <template scope="scope">
             <el-tag v-if="scope.row.Blacklisted"
@@ -122,12 +126,11 @@
 <script>
 import _ from 'lodash';
 import { mapActions, mapGetters } from 'vuex';
-import { saveAs } from 'file-saver';
 import NewContactDialog from '../components/NewContactDialog';
 import ViewContactDialog from '../components/ViewContactDialog';
-import { csvSeparator, contactsColumns } from '../config';
 import getContactFilter from '../utils/getContactFilter';
 import ImportCsvDialog from '../components/ImportCsvDialog';
+import ExportContactsDialog from '../components/ExportContactsDialog';
 
 const orderFunctions = {
   ascending(a, b) {
@@ -152,12 +155,13 @@ function clean(value) {
 }
 
 export default {
+  name: 'contacts',
   components: {
+    ExportContactsDialog,
     ImportCsvDialog,
     ViewContactDialog,
     NewContactDialog,
   },
-  name: 'contacts',
   data() {
     return {
       search: '',
@@ -170,6 +174,8 @@ export default {
         prop: null,
         order: null,
       },
+      empty: { empty: true },
+      notEmpty: { notEmpty: true },
     };
   },
   computed: {
@@ -193,7 +199,9 @@ export default {
         // eslint-disable-next-line no-restricted-syntax
         for (const [field, value] of activeFilters) {
           const values = Object.values(value);
-          if (!values.includes(contact[field])) {
+          if (!values.some(v => v === contact[field]
+                || (v === this.empty && !contact[field])
+                || (v === this.notEmpty && contact[field]))) {
             return false;
           }
         }
@@ -260,41 +268,6 @@ export default {
     onSortChange({ prop, order }) {
       this.sort = { prop, order };
     },
-    downloadCsv() {
-      let promise = Promise.resolve();
-      if (!this.filters.Blacklisted
-        || Object.keys(this.filters.Blacklisted).length !== 1
-        || this.filters.Blacklisted[0] !== false) {
-        promise = this.$confirm('You are not filtering out the blacklisted contacts. Continue?', 'Warning', {
-          confirmButtonText: 'Yes',
-          cancelButtonText: 'No',
-          type: 'warning',
-        });
-      }
-      promise.then(() => {
-        const headerText = `${contactsColumns
-        .filter(value => value.csv)
-        .map(value => value.csv)
-        .join(csvSeparator)}\n`;
-
-        const data = [headerText,
-          ...this.sortedItems
-          .map(contact => `${
-            contactsColumns
-            .filter(col => col.csv)
-            .map((col) => {
-              if (col.constant !== undefined) {
-                return col.constant;
-              }
-              return contact[col.name];
-            }).join(';')
-            }\n`),
-        ];
-
-        const blob = new Blob(data, { type: 'text/plain' });
-        saveAs(blob, 'contacts_test.csv');
-      });
-    },
   },
 };
 </script>
@@ -312,7 +285,11 @@ export default {
   /deep/ .cell {
     word-break: keep-all;
     .caret-wrapper {
-      padding: 1px 5px;
+      padding: 1px 14px;
+      margin: 0;
+      .sort-caret {
+        left: 8px;
+      }
     }
   }
 

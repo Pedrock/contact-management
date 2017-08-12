@@ -31,7 +31,7 @@
 <script>
 import { mapActions } from 'vuex';
 import _ from 'lodash';
-import { contactsColumns, baseContact } from '../config';
+import { contactsColumns, baseContact, validatePhoneNumber } from '../config';
 
 export default {
   name: 'new-contact-dialog',
@@ -56,9 +56,20 @@ export default {
           ...col,
           key: col.name,
           label: col.name,
-          rules: col.type === 'boolean' ? [] : [
-            { required: !!col.required, trigger: 'blur,change', message: `${col.name} is required` },
-          ],
+          rules: (() => {
+            if (col.type === 'boolean') {
+              return [];
+            } else if (col.type === 'phone') {
+              return [
+                { required: !!col.required, trigger: 'blur,change', message: `${col.name} is required` },
+                { trigger: 'blur,change',
+                  validator: (rule, value, callback) =>
+                    callback((value && !validatePhoneNumber(value)) || undefined),
+                  message: 'Please input a valid phone number.' },
+              ];
+            }
+            return [{ required: !!col.required, trigger: 'blur,change', message: `${col.name} is required` }];
+          })(),
         }));
     },
   },
@@ -116,9 +127,5 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.el-input.is-disabled /deep/ .el-input__inner {
-  cursor: text !important;
-  background-color: #f2f5f6;
-  color: #888;
-}
+
 </style>

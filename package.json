@@ -19,6 +19,7 @@
     "lodash": "^4.17.4",
     "vue": "^2.4.2",
     "vue-router": "^2.6.0",
+    "vuedraggable": "^2.14.1",
     "vuex": "^2.3.1",
     "vuexfire": "^2.2.0"
   },

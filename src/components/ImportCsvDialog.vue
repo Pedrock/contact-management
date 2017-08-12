@@ -20,7 +20,7 @@
           </el-select>
         </el-form-item><!--
      --><el-form-item>
-          <el-checkbox v-model="deleteAll">Delete All</el-checkbox>
+          <el-checkbox v-model="replaceAll">Replace Existing</el-checkbox>
         </el-form-item><!--
      --><el-input type="textarea"
                   :rows="10"
@@ -69,6 +69,10 @@ function fixNames(contacts, invalidPhoneNumbers) {
         contact[field] = '';
       }
     });
+    if (contact['Mobile 2'] && !contact.Mobile) {
+      contact.Mobile = contact['Mobile 2'];
+      contact['Mobile 2'] = '';
+    }
     contact.Blacklisted = contact.Blacklisted !== '' && contact.Blacklisted.toLowerCase() !== 'no';
     delete contact[''];
   });
@@ -82,7 +86,7 @@ export default {
       dialogVisible: false,
       text: null,
       separator: null,
-      deleteAll: false,
+      replaceAll: false,
       loading: false,
       invalidPhoneNumbers: [],
     };
@@ -123,7 +127,7 @@ export default {
       }
       this.loading = true;
       setTimeout(() => {
-        (this.deleteAll ? this.replaceContacts : this.addMultipleContacts)(contacts)
+        (this.replaceAll ? this.replaceContacts : this.addMultipleContacts)(contacts)
           .then(() => {
             this.$notify.success({
               title: 'Success',

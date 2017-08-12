@@ -5,6 +5,7 @@ html, body {
 }
 
 * {
+  box-sizing: border-box;
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: subpixel-antialiased !important;
   -moz-osx-font-smoothing: grayscale;
@@ -24,13 +25,24 @@ html, body {
   -moz-appearance:textfield;
 }
 
-.el-dialog {
-  left: 51%;
+.el-dialog--small {
+  left: 0;
+  transform: none;
+  margin: auto;
+  position: relative;
+  @media screen and (max-width: 1000px) {
+    width: 500px;
+  }
+  @media screen and (max-width: 500px) {
+    transform: none;
+    width: 100%;
+  }
 }
 
 .el-table-filter {
   max-height: calc(100vh - 15px);
   overflow: auto;
+  transform: translateZ(0);
 }
 
 .cell .caret-wrapper {
@@ -44,4 +56,10 @@ html, body {
 .el-message-box-multiline {
   white-space: pre-wrap;
   width: 700px;
+}
+
+.el-input.is-disabled .el-input__inner {
+  cursor: text !important;
+  background-color: #f2f5f6;
+  color: #888;
 }
