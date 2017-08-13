@@ -72,6 +72,7 @@ export default {
   }
 
   .list-picker-list {
+    vertical-align: top;
     display: inline-block;
     width: 50%;
     &:not(:last-child) {
@@ -84,7 +85,6 @@ export default {
 
   .draggable-list {
     margin: 0;
-    vertical-align: top;
     display: inline-block;
     padding: 1px;
     border: 1px solid #aaa;
