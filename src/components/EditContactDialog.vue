@@ -1,12 +1,13 @@
 <template>
   <span class="new-contact-dialog">
-    <el-button type="primary" size="small" icon="plus" @click="() => dialogVisible = true">New Contact</el-button>
+    <el-button type="primary" size="small" icon="edit" @click="() => dialogVisible = true"></el-button>
     <contact-form-dialog v-model="dialogVisible"
+                         :contact="contact"
                          :submit="submit"
                          @success="onSuccess"
                          @failure="onFailure"
-                         title="New Contact"
-                         submitText="Create"></contact-form-dialog>
+                         title="Edit Contact"
+                         submitText="Save"></contact-form-dialog>
   </span>
 </template>
 
@@ -15,8 +16,14 @@ import { mapActions } from 'vuex';
 import ContactFormDialog from './ContactFormDialog';
 
 export default {
-  name: 'new-contact-dialog',
+  name: 'edit-contact-dialog',
   components: { ContactFormDialog },
+  props: {
+    contact: {
+      type: Object,
+      required: true,
+    },
+  },
   data() {
     return {
       dialogVisible: false,
@@ -24,21 +31,21 @@ export default {
   },
   methods: {
     ...mapActions({
-      addContact: 'contacts/addContact',
+      editContact: 'contacts/editContact',
     }),
     submit(contact) {
-      return this.addContact(contact);
+      return this.editContact(contact);
     },
     onSuccess() {
       this.$notify.success({
         title: 'Success',
-        message: 'Contact added successfully.',
+        message: 'Contact edited successfully.',
       });
     },
     onFailure() {
       this.$notify.error({
         title: 'Error',
-        message: 'Contact creation failed.',
+        message: 'Contact editing failed.',
       });
     },
   },

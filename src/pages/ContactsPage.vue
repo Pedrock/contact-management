@@ -100,9 +100,10 @@
           label="Operations"
           class-name="operations"
           header-align="center"
-          min-width="80">
+          min-width="120">
           <template scope="scope">
             <view-contact-dialog :contact="scope.row"></view-contact-dialog>
+            <edit-contact-dialog :contact="scope.row"></edit-contact-dialog>
             <el-button
               size="small"
               type="danger"
@@ -131,6 +132,7 @@ import ViewContactDialog from '../components/ViewContactDialog';
 import getContactFilter from '../utils/getContactFilter';
 import ImportCsvDialog from '../components/ImportCsvDialog';
 import ExportContactsDialog from '../components/ExportContactsDialog';
+import EditContactDialog from '../components/EditContactDialog';
 
 const orderFunctions = {
   ascending(a, b) {
@@ -157,6 +159,7 @@ function clean(value) {
 export default {
   name: 'contacts',
   components: {
+    EditContactDialog,
     ExportContactsDialog,
     ImportCsvDialog,
     ViewContactDialog,

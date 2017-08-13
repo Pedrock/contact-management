@@ -1,6 +1,6 @@
 <template>
   <span class="export-contacts-dialog">
-    <el-button type="primary" icon="upload2" class="download-csv" size="small" @click="openDialog">Export Contacts</el-button>
+    <el-button type="primary" icon="upload2" size="small" @click="openDialog">Export Contacts</el-button>
     <el-dialog
       top="5%"
       title="Export Contacts"

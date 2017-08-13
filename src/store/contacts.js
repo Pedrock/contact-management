@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import { firebaseAction } from 'vuexfire';
 
 export default {
@@ -52,6 +53,9 @@ export default {
       const updates = contacts.reduce((obj, contact) =>
         ({ ...obj, [state.ref.push().key]: contact }), {});
       return state.ref.update(updates);
+    },
+    editContact({ state }, contact) {
+      state.ref.child(contact['.key']).update(_.omit(contact, ['.key']));
     },
     replaceContacts({ state }, contacts) {
       const updates = contacts.reduce((obj, contact) =>
