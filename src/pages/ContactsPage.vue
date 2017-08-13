@@ -156,6 +156,11 @@ function clean(value) {
   return _.deburr(String(value).trim().toLowerCase());
 }
 
+function objectContainsString(obj, str) {
+  return Object.values(obj)
+    .some(val => clean(val).includes(str));
+}
+
 export default {
   name: 'contacts',
   components: {
@@ -190,10 +195,16 @@ export default {
     }),
     searchFilteredItems() {
       const cleanSearch = clean(this.search);
+      const tokens = cleanSearch.split(' ')
+        .map(token => token.trim())
+        .filter(token => token);
+      if (!tokens.length) {
+        return this.filteredItems;
+      }
       return this.filteredItems
-        .filter(item => Object.values(item)
-          .some(val =>
-          clean(val).includes(cleanSearch)));
+        .filter(item =>
+          tokens.every(token =>
+            objectContainsString(item, token)));
     },
     filteredItems() {
       const activeFilters = Object.entries(this.filters)
