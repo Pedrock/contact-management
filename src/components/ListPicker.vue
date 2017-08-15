@@ -50,10 +50,10 @@ export default {
   },
   watch: {
     list1() {
-      this.$emit('source', this.list);
+      this.$emit('update:source', this.list);
     },
     list2() {
-      this.$emit('target', this.list2);
+      this.$emit('update:target', this.list2);
     },
   },
   components: {

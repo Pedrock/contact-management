@@ -47,9 +47,8 @@ export default {
   computed: {
     columns() {
       const wantedColumns = this.target.map(t => t.key);
-      return contactsColumns
-      .filter(value => value.csv)
-      .filter(col => wantedColumns.includes(col.name));
+      return wantedColumns
+        .map(name => contactsColumns.find(col => col.name === name));
     },
   },
   methods: {
