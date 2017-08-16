@@ -4,33 +4,53 @@
       size="small"
       type="primary"
       icon="upload2"
-      @click="dialogVisible = true">Import CSV</el-button>
+      @click="changeVisibility(true)">Import Contacts</el-button>
     <el-dialog
       top="5%"
-      title="Import Contacts CSV"
+      title="Import Contacts"
       :visible.sync="dialogVisible"
       size="small">
-      <el-form inline ref="form">
-         <el-form-item label="Separator">
-          <el-select v-model="separator">
-            <el-option label="Auto-detect" :value="null"></el-option>
-            <el-option label="Comma" value=","></el-option>
-            <el-option label="Semi-colon" value=";"></el-option>
-            <el-option label="Tab" :value="'\t'"></el-option>
-          </el-select>
-        </el-form-item><!--
-     --><el-form-item>
-          <el-checkbox v-model="replaceAll">Replace Existing</el-checkbox>
-        </el-form-item><!--
-     --><el-input type="textarea"
-                  :rows="10"
-                  placeholder="Paste your CSV here"
-                  v-model="text">
-        </el-input>
-      </el-form>
+      <div v-if="stage === 1">
+          <el-upload
+            class="file-upload"
+            action=""
+            drag
+            :show-file-list="false"
+            :http-request="handleFile"
+            :multiple="false">
+          <i class="el-icon-upload"></i>
+          <div class="el-upload__text">Drop file here or <em>click to upload</em></div>
+          <div class="upload-loading" v-if="loading">
+            <div class="overlay"></div>
+            <i class="el-icon-loading"></i>
+          </div>
+        </el-upload>
+      </div>
+      <div v-else-if="stage === 2">
+        <p>Pick a Sheet from the Workbook.</p>
+        <el-select v-model="worksheetName" placeholder="Worksheet">
+          <el-option
+            v-for="item in sheetNames"
+            :key="item"
+            :label="item"
+            :value="item">
+          </el-option>
+        </el-select>
+      </div>
+      <div v-else>
+        <el-checkbox class="replace-all" v-model="replaceAll">Replace All Existing Contacts</el-checkbox>
+        <el-form class="contact-form-dialog" ref="form" @submit.native.prevent="submitForm">
+          <el-form-item v-for="column in columnMapping" :key="column.name" :prop="column.name" :label="column.name" label-width="120px">
+            <el-select clearable v-model="column.fileColumn" :label="column.name" placeholder="Column">
+              <el-option v-for="choice in fileColumns" :key="choice" :label="choice" :value="choice"></el-option>
+            </el-select>
+          </el-form-item>
+        </el-form>
+      </div>
       <span slot="footer" class="dialog-footer">
         <el-button @click="changeVisibility(false)" :disabled="loading">Cancel</el-button>
-        <el-button @click="importContacts" type="primary" :disabled="loading" :loading="loading">Import</el-button>
+        <el-button v-if="stage === 2" type="primary" @click="() => stage = 3">Next</el-button>
+        <el-button v-if="stage === 3" @click="importContacts" type="primary" :disabled="loading" :loading="loading">Import</el-button>
       </span>
     </el-dialog>
   </span>
@@ -39,9 +59,11 @@
 <script>
 import _ from 'lodash';
 import { mapActions } from 'vuex';
-import csvToJson from '../utils/csvToJson';
+import XLSX from 'xlsx';
 import getGender from '../utils/getGender';
-import { phoneNumberFields, validatePhoneNumber } from '../config';
+import { phoneNumberFields, validatePhoneNumber, contactsColumns } from '../config';
+import { getWorkbookFromFile, getWorksheetColumns } from '../utils/xlsxUtils';
+import promiseTimeout from '../utils/promiseTimeout';
 
 /* eslint-disable no-param-reassign */
 function fixNames(contacts, invalidPhoneNumbers) {
@@ -73,11 +95,13 @@ function fixNames(contacts, invalidPhoneNumbers) {
       contact.Mobile = contact['Mobile 2'];
       contact['Mobile 2'] = '';
     }
-    contact.Blacklisted = contact.Blacklisted !== '' && contact.Blacklisted.toLowerCase() !== 'no';
+    contact.Blacklisted = contact.Blacklisted && contact.Blacklisted.toLowerCase() !== 'no';
     delete contact[''];
   });
 }
 /* eslint-enable no-param-reassign */
+
+let workbook = null;
 
 export default {
   name: 'import-csv-dialog',
@@ -89,29 +113,102 @@ export default {
       replaceAll: false,
       loading: false,
       invalidPhoneNumbers: [],
+      stage: 1,
+      worksheetName: null,
+      error: null,
+      columnMapping: null,
+      sheetNames: null,
     };
+  },
+  watch: {
+    stage(stage) {
+      if (stage === 3) {
+        this.columnMapping = contactsColumns
+          .filter(col => col.name)
+          .map((col) => {
+            let fileColumn = null;
+            if (this.fileColumns.includes(col.name)) {
+              fileColumn = col.name;
+            } else if (col.csv && this.fileColumns.includes(col.csv)) {
+              fileColumn = col.csv;
+            }
+            return { name: col.name, fileColumn };
+          });
+      } else if (stage === 2) {
+        this.sheetNames = workbook.SheetNames;
+      }
+    },
+  },
+  computed: {
+    fileColumns() {
+      if (!this.worksheetName) {
+        return [];
+      }
+      return getWorksheetColumns(workbook.Sheets[this.worksheetName]);
+    },
   },
   methods: {
     ...mapActions({
       addMultipleContacts: 'contacts/addMultipleContacts',
       replaceContacts: 'contacts/replaceContacts',
     }),
+    handleFile({ file }) {
+      this.loading = true;
+      promiseTimeout()
+      .then(() => getWorkbookFromFile(file))
+      .then((wb) => {
+        if (wb.SheetNames.length === 0) {
+          this.showError('Workbook has no sheets.');
+        } else {
+          workbook = wb;
+          if (wb.SheetNames.length === 1) {
+            this.worksheetName = wb.SheetNames[0];
+            this.stage = 3;
+          } else {
+            this.stage = 2;
+          }
+        }
+      })
+      .catch(() => {
+        this.showError('File read failed');
+      })
+      .then(() => {
+        this.loading = false;
+      });
+    },
+    showError(message) {
+      this.$notify.error({
+        title: 'Error',
+        message,
+      });
+    },
+    getContacts() {
+      const worksheet = workbook.Sheets[this.worksheetName];
+      const contacts = XLSX.utils.sheet_to_json(worksheet);
+
+      return contacts
+        .map((contact) => {
+          const obj = {};
+          for (let i = 0; i < this.columnMapping.length; i++) {
+            const map = this.columnMapping[i];
+            obj[map.name] = map.fileColumn ? contact[map.fileColumn] : null;
+            if (obj[map.name] === undefined) {
+              obj[map.name] = '';
+            }
+          }
+          return obj;
+        });
+    },
     importContacts() {
       let contacts;
       try {
-        contacts = csvToJson(_.trim(this.text, '\n'), { separator: this.separator });
+        contacts = this.getContacts();
       } catch (error) {
-        this.$notify.error({
-          title: 'Error',
-          message: error.message,
-        });
+        this.showError(error.message);
         return;
       }
       if (!contacts.length) {
-        this.$notify.error({
-          title: 'Error',
-          message: 'No contacts to import.',
-        });
+        this.showError('No contacts to import.');
         return;
       }
       const invalidPhoneNumbers = [];
@@ -126,44 +223,71 @@ export default {
         errorLog.push(`The gender of the following names could not be automatically detected: ${noGenderNames.join(', ')}.`);
       }
       this.loading = true;
-      setTimeout(() => {
-        (this.replaceAll ? this.replaceContacts : this.addMultipleContacts)(contacts)
-          .then(() => {
-            this.$notify.success({
-              title: 'Success',
-              message: 'Contacts imported successfully.',
-            });
-            this.dialogVisible = false;
-            if (errorLog.length) {
-              this.$alert(errorLog.join('\n\n'), 'Error log', {
-                type: 'warning',
-                confirmButtonText: 'OK',
-                customClass: 'el-message-box-multiline',
-              });
-            }
-          })
-          .catch(() => {
-            this.$notify.error({
-              title: 'Error',
-              message: 'Contact import failed.',
-            });
-          })
-          .then(() => {
-            this.loading = false;
+      promiseTimeout()
+      .then(() => (this.replaceAll ? this.replaceContacts : this.addMultipleContacts)(contacts))
+      .then(() => {
+        this.$notify.success({
+          title: 'Success',
+          message: 'Contacts imported successfully.',
+        });
+        this.dialogVisible = false;
+        if (errorLog.length) {
+          this.$alert(errorLog.join('\n\n'), 'Error log', {
+            type: 'warning',
+            confirmButtonText: 'OK',
+            customClass: 'el-message-box-multiline',
           });
+        }
+      })
+      .catch(() => {
+        this.$notify.error({
+          title: 'Error',
+          message: 'Contact import failed.',
+        });
+      })
+      .then(() => {
+        this.loading = false;
       });
     },
     changeVisibility(visibility) {
       if (visibility) {
+        this.stage = 1;
         this.dialogVisible = true;
       } else if (!this.loading) {
         this.dialogVisible = false;
+        workbook = null;
       }
     },
   },
 };
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
+.file-upload {
+  text-align: center;
+}
 
+.replace-all {
+  margin-bottom: 32px;
+}
+
+.upload-loading {
+  > .overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    background-color: #fff;
+    opacity: 0.7;
+  }
+
+  > i {
+    font-size: 50px;
+    color: #20a0ff;
+    position: absolute;
+    left: calc(50% - 25px);
+    top: calc(50% - 25px);
+  }
+}
 </style>
