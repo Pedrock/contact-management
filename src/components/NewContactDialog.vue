@@ -1,6 +1,5 @@
 <template>
   <span class="new-contact-dialog">
-    <el-button type="primary" size="small" icon="plus" @click="() => dialogVisible = true">New Contact</el-button>
     <contact-form-dialog v-model="dialogVisible"
                          :submit="submit"
                          @success="onSuccess"
@@ -19,8 +18,13 @@ export default {
   components: { ContactFormDialog },
   data() {
     return {
-      dialogVisible: false,
+      dialogVisible: true,
     };
+  },
+  watch: {
+    dialogVisible(dialogVisible) {
+      this.$store.commit('dialogs/changeNewContactDialog', dialogVisible);
+    },
   },
   methods: {
     ...mapActions({

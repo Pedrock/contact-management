@@ -1,5 +1,7 @@
 /* eslint-disable no-console */
-import firebase from 'firebase';
+import firebase from 'firebase/app';
+import 'firebase/auth';
+import 'firebase/database';
 import store from './store/store';
 
 const config = {

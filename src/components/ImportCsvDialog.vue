@@ -1,10 +1,5 @@
 <template>
   <span class="import-csv-dialog">
-    <el-button
-      size="small"
-      type="primary"
-      icon="upload2"
-      @click="changeVisibility(true)">Import Contacts</el-button>
     <el-dialog
       top="5%"
       title="Import Contacts"
@@ -49,7 +44,7 @@
       </div>
       <span slot="footer" class="dialog-footer">
         <el-button @click="changeVisibility(false)" :disabled="loading">Cancel</el-button>
-        <el-button v-if="stage === 2" type="primary" @click="() => stage = 3">Next</el-button>
+        <el-button v-if="stage === 2" type="primary" @click="stage = 3">Next</el-button>
         <el-button v-if="stage === 3" @click="importContacts" type="primary" :disabled="loading" :loading="loading">Import</el-button>
       </span>
     </el-dialog>
@@ -95,7 +90,7 @@ function fixNames(contacts, invalidPhoneNumbers) {
       contact.Mobile = contact['Mobile 2'];
       contact['Mobile 2'] = '';
     }
-    contact.Blacklisted = contact.Blacklisted && contact.Blacklisted.toLowerCase() !== 'no';
+    contact.Blacklisted = contact.Blacklisted && contact.Blacklisted.toLowerCase() !== 'x';
     delete contact[''];
   });
 }
@@ -107,7 +102,7 @@ export default {
   name: 'import-csv-dialog',
   data() {
     return {
-      dialogVisible: false,
+      dialogVisible: true,
       text: null,
       separator: null,
       replaceAll: false,
@@ -137,6 +132,9 @@ export default {
       } else if (stage === 2) {
         this.sheetNames = workbook.SheetNames;
       }
+    },
+    dialogVisible(dialogVisible) {
+      this.$store.commit('dialogs/changeImportContactsDialog', dialogVisible);
     },
   },
   computed: {

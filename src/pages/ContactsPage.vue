@@ -13,6 +13,12 @@
       </template>
     </div>
     <div v-else>
+      <import-csv-dialog v-if="showImportContactsDialog"></import-csv-dialog>
+      <export-contacts-dialog v-if="showExportContactsDialog":items="sortedItems" :filters="filters"></export-contacts-dialog>
+      <new-contact-dialog v-if="showNewContactDialog"></new-contact-dialog>
+      <view-contact-dialog v-if="showViewContactDialog"></view-contact-dialog>
+      <edit-contact-dialog v-if="showEditContactDialog"></edit-contact-dialog>
+
       <div class="toolbox">
         <el-input
           placeholder="Search"
@@ -20,9 +26,21 @@
           icon="search"
           @input="onSearchInput">
         </el-input>
-        <export-contacts-dialog :items="sortedItems" :filters="filters"></export-contacts-dialog>
-        <import-csv-dialog></import-csv-dialog>
-        <new-contact-dialog></new-contact-dialog>
+        <el-button
+          type="primary"
+          icon="upload2"
+          size="small"
+          @click="changeExportContactsDialog(true)">Export Contacts</el-button><!--
+     --><el-button
+          size="small"
+          type="primary"
+          icon="upload2"
+          @click="changeImportContactsDialog(true)">Import Contacts</el-button><!--
+     --><el-button
+          type="primary"
+          size="small"
+          icon="plus"
+          @click="changeNewContactDialog(true)">New Contact</el-button>
       </div>
       <el-table
         :data="pageItems"
@@ -102,8 +120,16 @@
           header-align="center"
           min-width="120">
           <template scope="scope">
-            <view-contact-dialog :contact="scope.row"></view-contact-dialog>
-            <edit-contact-dialog :contact="scope.row"></edit-contact-dialog>
+            <el-button
+              size="small"
+              type="info"
+              icon="view"
+              @click="viewContact(scope.row)"></el-button>
+            <el-button
+              type="primary"
+              size="small"
+              icon="edit"
+              @click="editContact(scope.row)"></el-button>
             <el-button
               size="small"
               type="danger"
@@ -126,12 +152,10 @@
 
 <script>
 import _ from 'lodash';
-import { mapActions, mapGetters } from 'vuex';
+import { mapActions, mapGetters, mapMutations } from 'vuex';
+import getContactFilter from '../utils/getContactFilter';
 import NewContactDialog from '../components/NewContactDialog';
 import ViewContactDialog from '../components/ViewContactDialog';
-import getContactFilter from '../utils/getContactFilter';
-import ImportCsvDialog from '../components/ImportCsvDialog';
-import ExportContactsDialog from '../components/ExportContactsDialog';
 import EditContactDialog from '../components/EditContactDialog';
 
 const orderFunctions = {
@@ -165,8 +189,8 @@ export default {
   name: 'contacts',
   components: {
     EditContactDialog,
-    ExportContactsDialog,
-    ImportCsvDialog,
+    ExportContactsDialog: () => import('../components/ExportContactsDialog'),
+    ImportCsvDialog: () => import('../components/ImportCsvDialog'),
     ViewContactDialog,
     NewContactDialog,
   },
@@ -192,6 +216,11 @@ export default {
       loading: 'contacts/loading',
       error: 'contacts/error',
       permissionDenied: 'contacts/permissionDenied',
+      showNewContactDialog: 'dialogs/newContact',
+      showImportContactsDialog: 'dialogs/importContacts',
+      showExportContactsDialog: 'dialogs/exportContacts',
+      showViewContactDialog: 'dialogs/viewContact',
+      showEditContactDialog: 'dialogs/editContact',
     }),
     searchFilteredItems() {
       const cleanSearch = clean(this.search);
@@ -246,6 +275,13 @@ export default {
   methods: {
     ...mapActions({
       removeContact: 'contacts/removeContact',
+    }),
+    ...mapMutations({
+      changeNewContactDialog: 'dialogs/changeNewContactDialog',
+      changeImportContactsDialog: 'dialogs/changeImportContactsDialog',
+      changeExportContactsDialog: 'dialogs/changeExportContactsDialog',
+      viewContact: 'dialogs/viewContact',
+      editContact: 'dialogs/editContact',
     }),
     onSearchInput: _.debounce(function onSearchInput(value) {
       this.search = value;
@@ -317,6 +353,10 @@ export default {
     }
   }
 
+  /deep/ .operations > .cell > button {
+    margin: 0;
+  }
+
   /deep/ .blacklisted.is-leaf > .cell {
     padding-right: 10px;
   }
@@ -335,8 +375,9 @@ export default {
     margin-right: 4px;
     float: left;
   }
-  /deep/ > span > .el-button, .el-button {
+  > button {
     margin-bottom: 4px;
+    margin-left: 8px;
   }
 
   &:after {

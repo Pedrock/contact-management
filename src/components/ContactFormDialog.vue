@@ -50,7 +50,7 @@ export default {
   },
   data() {
     return {
-      dialogVisible: false,
+      dialogVisible: this.value,
       form: { ...baseContact, ...this.contact },
       loading: false,
     };

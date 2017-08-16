@@ -1,33 +1,36 @@
 <template>
-  <span class="new-contact-dialog">
-    <el-button type="primary" size="small" icon="edit" @click="() => dialogVisible = true"></el-button>
-    <contact-form-dialog v-model="dialogVisible"
-                         :contact="contact"
-                         :submit="submit"
-                         @success="onSuccess"
-                         @failure="onFailure"
-                         title="Edit Contact"
-                         submitText="Save"></contact-form-dialog>
-  </span>
+  <contact-form-dialog v-model="dialogVisible"
+                       :contact="contact"
+                       :submit="submit"
+                       @success="onSuccess"
+                       @failure="onFailure"
+                       title="Edit Contact"
+                       submitText="Save"></contact-form-dialog>
 </template>
 
 <script>
-import { mapActions } from 'vuex';
+import { mapActions, mapGetters } from 'vuex';
 import ContactFormDialog from './ContactFormDialog';
 
 export default {
   name: 'edit-contact-dialog',
   components: { ContactFormDialog },
-  props: {
-    contact: {
-      type: Object,
-      required: true,
-    },
-  },
   data() {
     return {
-      dialogVisible: false,
+      dialogVisible: true,
     };
+  },
+  computed: {
+    ...mapGetters({
+      contact: 'dialogs/selectedContact',
+    }),
+  },
+  watch: {
+    dialogVisible(dialogVisible) {
+      if (!dialogVisible) {
+        this.$store.commit('dialogs/editContact', null);
+      }
+    },
   },
   methods: {
     ...mapActions({

@@ -1,6 +1,5 @@
 <template>
   <span class="export-contacts-dialog">
-    <el-button type="primary" icon="upload2" size="small" @click="openDialog">Export Contacts</el-button>
     <el-dialog
       top="5%"
       title="Export Contacts"
@@ -8,7 +7,7 @@
       size="small">
       <list-picker :source="source" :target.sync="target"></list-picker>
       <span slot="footer" class="dialog-footer">
-        <el-button @click="() => dialogVisible = false">Cancel</el-button>
+        <el-button @click="dialogVisible = false">Cancel</el-button>
         <el-button @click="exportCsv" type="primary">Export</el-button>
       </span>
     </el-dialog>
@@ -39,10 +38,15 @@ export default {
   },
   data() {
     return {
-      dialogVisible: false,
+      dialogVisible: true,
       target: getColumns(true),
       source: getColumns(false),
     };
+  },
+  watch: {
+    dialogVisible(dialogVisible) {
+      this.$store.commit('dialogs/changeExportContactsDialog', dialogVisible);
+    },
   },
   computed: {
     columns() {
