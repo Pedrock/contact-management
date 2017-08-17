@@ -28,13 +28,13 @@
         </el-input>
         <el-button
           type="primary"
-          icon="upload2"
           size="small"
+          icon="share"
           @click="changeExportContactsDialog(true)">Export Contacts</el-button><!--
      --><el-button
           size="small"
           type="primary"
-          icon="upload2"
+          icon="upload"
           @click="changeImportContactsDialog(true)">Import Contacts</el-button><!--
      --><el-button
           type="primary"
