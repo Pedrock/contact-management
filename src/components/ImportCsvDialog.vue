@@ -56,46 +56,10 @@
 import _ from 'lodash';
 import { mapActions } from 'vuex';
 import XLSX from 'xlsx';
-import getGender from '../utils/getGender';
-import { phoneNumberFields, validatePhoneNumber, contactsColumns } from '../config';
+import { contactsColumns } from '../config';
 import { getWorkbookFromFile, getWorksheetColumns } from '../utils/xlsxUtils';
 import promiseTimeout from '../utils/promiseTimeout';
-
-/* eslint-disable no-param-reassign */
-function fixNames(contacts, invalidPhoneNumbers) {
-  contacts.forEach((contact) => {
-    contact.Name = _.startCase(_.toLower(contact.Name || ''));
-    contact.Location = _.startCase(_.toLower(contact.Location || ''));
-    const nameParts = (contact.Name).split(' ');
-    if (!contact['Given Name']) {
-      contact['Given Name'] = nameParts.length > 0 ? nameParts[0] : '';
-    }
-    if (!contact['Family Name']) {
-      contact['Family Name'] = nameParts.length > 1 ? nameParts[nameParts.length - 1] : '';
-    }
-    if (!contact['Additional Name']) {
-      contact['Additional Name'] = nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : '';
-    }
-    if (!contact.Gender) {
-      contact.Gender = getGender(contact['Given Name']);
-    }
-    phoneNumberFields.forEach((field) => {
-      if (contact[field] && !validatePhoneNumber(contact[field])) {
-        if (!invalidPhoneNumbers.includes(contact[field])) {
-          invalidPhoneNumbers.push(contact[field]);
-        }
-        contact[field] = '';
-      }
-    });
-    if (contact['Mobile 2'] && !contact.Mobile) {
-      contact.Mobile = contact['Mobile 2'];
-      contact['Mobile 2'] = '';
-    }
-    contact.Blacklisted = contact.Blacklisted && contact.Blacklisted.toLowerCase() !== 'x';
-    delete contact[''];
-  });
-}
-/* eslint-enable no-param-reassign */
+import fixNames from '../utils/fixNames';
 
 let workbook = null;
 
@@ -140,6 +104,11 @@ export default {
         return [];
       }
       const columns = getWorksheetColumns(workbook.Sheets[this.worksheetName]);
+
+      for (let i = 0; i < columns.length; i++) {
+        if (columns[i] === undefined) columns[i] = '';
+      }
+
       if (this.hasHeader) {
         return columns.map(name => ({ name, value: name }));
       }

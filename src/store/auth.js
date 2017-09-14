@@ -21,6 +21,8 @@ export default {
   actions: {
     login() {
       const provider = new firebase.auth.GoogleAuthProvider();
+      provider.addScope('https://www.googleapis.com/auth/contacts');
+      provider.addScope('https://www.googleapis.com/auth/drive');
       return firebase.auth().signInWithPopup(provider);
     },
     logout() {

@@ -1,8 +1,9 @@
-import _ from 'lodash';
+const _ = require('lodash');
 
-export const csvSeparator = ';';
+const csvSeparator = ';';
+exports.csvSeparator = csvSeparator;
 
-export const contactsColumns = [
+const contactsColumns = [
   {
     name: 'ID',
     csv: 'ID',
@@ -88,17 +89,19 @@ export const contactsColumns = [
     type: 'boolean',
   },
 ];
+exports.contactsColumns = contactsColumns;
 
-export const phoneNumberFields = contactsColumns.filter(f => f.type === 'phone').map(f => f.name);
+exports.phoneNumberFields = contactsColumns.filter(f => f.type === 'phone').map(f => f.name);
 
-export const order = _.map(contactsColumns, col => col.name);
+exports.order = _.map(contactsColumns, col => col.name);
 
-export const baseContact = contactsColumns
+exports.baseContact = contactsColumns
   .filter(col => col.name)
   .reduce((obj, col) => ({ ...obj, [col.name]: col.constant || '' }), {});
 
 const phoneRegex = new RegExp('^((00|\\+)351)?[0-9]{9}$');
 
-export function validatePhoneNumber(number) {
+exports.validatePhoneNumber = function validatePhoneNumber(number) {
   return phoneRegex.test(String(number).replace(/ /g, ''));
-}
+};
+
